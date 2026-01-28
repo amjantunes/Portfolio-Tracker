@@ -1,4 +1,4 @@
-### 📈 Portfolio Tracker (PTR)
+## 📈 Portfolio Tracker (PTR)
 An automated financial asset monitoring system
 
 This project was born out of the need to centralize the tracking of investments made across different stock exchanges and assets, allowing for the visualization of real Profit/Loss in Euros, regardless of the assets' original currency.

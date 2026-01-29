@@ -5,6 +5,10 @@ from datetime import datetime
 
 def populate_exchange_rates():
     DB_URL = os.environ.get('DATABASE_URL')
+    
+    if not DB_URL:
+        raise ValueError("DATABASE_URL was not found! Check your GitHub Secrets.")
+    
     conn = psycopg2.connect(DB_URL)
     cur = conn.cursor()
 

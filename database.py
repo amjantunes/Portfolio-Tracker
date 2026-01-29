@@ -34,7 +34,7 @@ def db_setup():
     try:        
         logger.info("Attempting to connect to the database...")
         
-        conn = psy.connect(db_url)
+        conn = psy.connect(db_url,connect_timeout=10)
         logger.info("Database connection established successfully!")
         cur = conn.cursor()
         cur.fetchall

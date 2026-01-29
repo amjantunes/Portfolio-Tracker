@@ -1,8 +1,9 @@
 name: Update Exchange Rates
 
 on:
+  push:
+    branches: [main, develop]
   schedule:
-    # runs every day at 00 UTC
     - cron: '0 0 * * *'
   workflow_dispatch: # Allows me to run it mannualy 
 
@@ -10,10 +11,10 @@ jobs:
   update-db:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout código
+      - name: Code Checkout
         uses: actions/checkout@v3
 
-      - name: Setup Python
+      - name: Python Setup
         uses: actions/setup-python@v4
         with:
           python-version: '3.9'
@@ -21,7 +22,7 @@ jobs:
       - name: Install Dependencies 
         run: pip install -r requirements.txt
 
-      - name: Executar script de atualização
+      - name: Updating Script Execution 
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DATABASE_URL: ${{ github.ref == 'refs/heads/main' && secrets.DATABASE_URL_PRD || secrets.DATABASE_URL_DEV }}
         run: python update_rates.py

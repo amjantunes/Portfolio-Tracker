@@ -8,7 +8,7 @@ on:
   workflow_dispatch: # Allows me to run it mannualy 
 
 jobs:
-  update-db:
+  update-exchange-rates:
     runs-on: ubuntu-latest
     steps:
       - name: Code Checkout

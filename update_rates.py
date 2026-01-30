@@ -13,7 +13,7 @@ def populate_exchange_rates():
     
     if not db_url:
         logger.error("DATABASE_URL environment variable is missing.")
-        return
+        raise EnvironmentError("DATABASE_URL not found. Check your GitHub Secrets.")
 
     conn = None
     try:
@@ -22,22 +22,20 @@ def populate_exchange_rates():
         conn = psycopg2.connect(db_url, connect_timeout=10)
         cur = conn.cursor()
 
-        # Check the last recorded date
+        #Check the last recorded date
         logger.info("Checking for the latest rate date in the database...")
         cur.execute("SELECT MAX(rate_date) FROM exchange_rates")
         last_date_in_db = cur.fetchone()[0]
 
-        # Define the start date for yfinance
+        #Define the start date
         if last_date_in_db is None:
             start_date = "2023-09-18"
             logger.info(f"Database is empty. Using default start date: {start_date}")
         else:
-            # Note: yfinance start_date is inclusive. 
-            # Using the last date from DB to ensure no gaps are left.
             start_date = last_date_in_db.strftime('%Y-%m-%d')
             logger.info(f"Last record found: {start_date}")
 
-        # Download data from Yahoo Finance
+        # Download data
         ticker = "EURUSD=X"
         logger.info(f"Downloading {ticker} data from {start_date}...")
         data = yf.download(ticker, start=start_date)
@@ -50,11 +48,10 @@ def populate_exchange_rates():
             inserted_count = 0
             
             for date, row in data.iterrows():
-                # Close price can sometimes be NaN in very recent data
                 if row.empty or 'Close' not in row:
                     continue
                     
-                rate_val = float(row['Close'])
+                rate_val = float(row.iloc[0])
                 date_str = date.strftime('%Y-%m-%d')
                 
                 cur.execute("""
@@ -63,7 +60,6 @@ def populate_exchange_rates():
                     ON CONFLICT (rate_date) DO NOTHING;
                 """, (date_str, rate_val))
                 
-                # Check if a row was actually inserted (not skipped by conflict)
                 if cur.rowcount > 0:
                     inserted_count += 1
 
@@ -73,9 +69,12 @@ def populate_exchange_rates():
         cur.close()
 
     except Exception as e:
+        # Log the error and then RE-RAISE it to trigger a GitHub Action failure
         logger.error(f"An error occurred during execution: {e}")
         if conn:
-            conn.rollback() # Undo changes if something went wrong
+            conn.rollback()
+        raise 
+
     finally:
         if conn:
             conn.close()

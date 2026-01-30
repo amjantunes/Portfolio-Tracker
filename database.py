@@ -23,7 +23,6 @@ def db_setup():
     Sets up the database connection using environment variables.
     Works for both local development (.env) and GitHub Actions (Secrets).
     """
-    
     load_dotenv(".env")
     
     db_url = os.environ.get("DATABASE_URL")
@@ -34,7 +33,7 @@ def db_setup():
     try:        
         logger.info("Attempting to connect to the database...")
         
-        conn = psy.connect(db_url)
+        conn = psy.connect(db_url,connect_timeout=10)
         logger.info("Database connection established successfully!")
         cur = conn.cursor()
         cur.fetchall
@@ -48,7 +47,6 @@ def get_tickers_earliest_transaction(conn):
     """
     Fetches the first transaction date for each ticker in the database.
     """
-    
     if conn is None:
         logger.warning("No active database connection found.")
         return []
